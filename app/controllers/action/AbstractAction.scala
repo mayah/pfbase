@@ -1,15 +1,13 @@
 package controllers.action
-import controllers.AbstractController
-import play.api.mvc.Content
-import play.api.mvc.PlainResult
+
+import controllers.base.AbstractController
 import play.api.Logger
+import play.api.mvc.PlainResult
+import play.api.templates.Html
 import resources.ServerErrorCode
 import resources.UserErrorCode
-import play.api.templates.Html
-import controllers.ActionContext
 
-abstract class AbstractAction extends AbstractController {
-
+abstract class AbstractAction[S, T] extends AbstractController[S, T] {
   protected def render(content: Html): PlainResult = Ok(content)
 
   override protected def renderInvalid(ec: UserErrorCode.Code, e: Option[Throwable] = None): PlainResult = {
@@ -31,9 +29,6 @@ abstract class AbstractAction extends AbstractController {
   }
 
   override protected def renderLoginRequired(): PlainResult = Redirect("/loginRequired")
-
   override protected def renderForbidden(): PlainResult = Forbidden
-
   override protected def renderNotFound(): PlainResult = NotFound
-
 }

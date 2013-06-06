@@ -3,12 +3,12 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.action.IndexAction.get()
+GET     /                           controllers.action.IndexAction.run()
 
 # Auth
-GET     /auth/loginWithTwitter      controllers.action.auth.LoginWithTwitterAction.get()
-GET     /auth/verifyForTwitter      controllers.action.auth.VerifyForTwitterAction.get()
-GET     /auth/logout                controllers.action.auth.LogoutAction.get()
+GET     /auth/loginWithTwitter      controllers.action.auth.LoginWithTwitterAction.run()
+GET     /auth/verifyForTwitter      controllers.action.auth.VerifyForTwitterAction.run()
+GET     /auth/logout                controllers.action.auth.LogoutAction.run()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

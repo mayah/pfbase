@@ -1,7 +1,7 @@
 package controllers.action.auth
 
 import controllers.action.AbstractAction
-import controllers.ActionContext
+import controllers.base.ActionContext
 import play.api.mvc.AnyContent
 import play.api.mvc.PlainResult
 import play.api.mvc.Request
@@ -19,49 +19,65 @@ import models.dto.User
 import models.dto.UserTwitterLinkEmbryo
 import play.api.db.DB
 import models.dto.UserTwitterLink
-import controllers.ServerErrorControllerException
 import java.sql.Connection
 import models.dto.UserTwitterLink
 import models.dto.UserEmbryo
-import models.aux.UserId
+import models.ids.UserId
+import controllers.base.ServerErrorControllerException
+import controllers.base.UserErrorControllerException
+import controllers.base.UserErrorControllerException
+import controllers.base.ServerErrorControllerException
 
-object VerifyForTwitterAction extends AbstractAction {
-  def get = execute
+case class VerifyForTwitterParams(
+    val verifier: String
+)
+case class VerifyForTwitterValues(
+    val loginInfo: TwitterLoginInformation,
+    val messageCode: MessageCode.Code
+)
 
-  def doExecute(implicit context: ActionContext): PlainResult = {
+object VerifyForTwitterAction extends AbstractAction[VerifyForTwitterParams, VerifyForTwitterValues] {
+  override def parseRequest(request: Request[AnyContent])(implicit context: ActionContext): VerifyForTwitterParams = {
     val verifier: String = param("oauth_verifier") match {
       case None =>
-        return renderInvalid(UserErrorCode.INVALID_OAUTH_VERIFIER)
+        throw new UserErrorControllerException(UserErrorCode.INVALID_OAUTH_VERIFIER)
       case Some(x) => x
     }
+
+    return VerifyForTwitterParams(verifier)
+  }
+
+  override def executeAction(params: VerifyForTwitterParams)(implicit context: ActionContext): VerifyForTwitterValues = {
     val sessionId: String = context.sessionId
     val loginInfo: TwitterLoginInformation = Cache.get(Constants.Cache.TWITTER_LOGIN_KEY_PREFIX + sessionId) match {
-      case None =>
-        return renderInvalid(UserErrorCode.INVALID_UNEXPECTED_REQUEST);
+      case None => throw UserErrorControllerException(UserErrorCode.INVALID_UNEXPECTED_REQUEST)
       case Some(x) => x.asInstanceOf[TwitterLoginInformation]
     }
-    Cache.set(Constants.Cache.TWITTER_LOGIN_KEY_PREFIX + sessionId, None) // We want to remove this.
+    Cache.remove(Constants.Cache.TWITTER_LOGIN_KEY_PREFIX + sessionId)
 
     val messageCode = try {
       val twitterService = AppGlobal.twitterService
-      val embryo = twitterService.createTwitterLinkFromLoginInformation(loginInfo, verifier)
+      val embryo = twitterService.createTwitterLinkFromLoginInformation(loginInfo, params.verifier)
       val user: User = loadFromTwitterLinkEmbryo(embryo)
       context.shouldAddToSession(Constants.Session.USER_ID_KEY, user.userId.toString())
 
       MessageCode.MESSAGE_AUTH_LOGIN
     } catch {
-      case e: TwitterException =>
-        return renderError(ServerErrorCode.TWITTER_OAUTH_ERROR, e);
+      case e: TwitterException => throw ServerErrorControllerException(ServerErrorCode.TWITTER_OAUTH_ERROR, Option(e));
     }
 
-    val redirectURL = loginInfo.redirectURL match {
+    return VerifyForTwitterValues(loginInfo, messageCode)
+  }
+
+  override def renderResult(values: VerifyForTwitterValues)(implicit context: ActionContext): PlainResult = {
+    val redirectURL = values.loginInfo.redirectURL match {
       case None =>
-        return renderRedirect("/", messageCode);
+        return renderRedirect("/", values.messageCode);
       case Some(x) =>
         x
     }
 
-    return renderRedirect(redirectURL, messageCode);
+    return renderRedirect(redirectURL, values.messageCode);
   }
 
   private def loadFromTwitterLinkEmbryo(embryo: UserTwitterLinkEmbryo): User = {

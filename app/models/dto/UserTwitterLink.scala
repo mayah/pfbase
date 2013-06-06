@@ -4,8 +4,8 @@ import java.util.UUID
 import anorm.SQL
 import anorm.sqlToSimple
 import anorm.toParameterValue
-import models.aux.UserId
-import models.aux.UserTwitterLinkId
+import models.ids.UserId
+import models.ids.UserTwitterLinkId
 import anorm.Column
 import anorm.MetaDataItem
 import anorm.TypeDoesNotMatch
@@ -16,9 +16,10 @@ class UserTwitterLinkEmbryo(
     val name: String,
     val profileImageURL: String,
     val accessToken: Option[String],
-    val accessTokenSecret: Option[String])
+    val accessTokenSecret: Option[String]
+)
 
-class UserTwitterLink(
+case class UserTwitterLink(
     val id: UserTwitterLinkId,
     val userId: UserId,
     val twitterId: Long,
@@ -26,7 +27,8 @@ class UserTwitterLink(
     val name: String,
     val profileImageURL: String,
     val accessToken: Option[String],
-    val accessTokenSecret: Option[String])
+    val accessTokenSecret: Option[String]
+)
 
 object UserTwitterLink extends ModelSupport {
 

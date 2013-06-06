@@ -1,28 +1,41 @@
-package controllers
+package controllers.base
+
 import java.util.UUID
-import models.dao.DAOException
+import models.base.DAOException
+import models.dto.User
+import play.api.Logger
 import play.api.Play.current
 import play.api.db.DB
-import play.api.mvc.Request
 import play.api.mvc.Action
 import play.api.mvc.AnyContent
 import play.api.mvc.Controller
 import play.api.mvc.PlainResult
-import play.api.Logger
+import play.api.mvc.Request
 import resources.Constants
 import resources.MessageCode
 import resources.ServerErrorCode
 import resources.UserErrorCode
-import models.dto.User
+import java.sql.Connection
 
-abstract class AbstractController extends Controller {
-  def doExecute(implicit context: ActionContext): PlainResult
+/**
+ * In this framework, we make
+ */
+abstract class AbstractController[S, T] extends Controller {
 
-  def execute = Action { request: Request[AnyContent] =>
+  def parseRequest(request: Request[AnyContent])(implicit context: ActionContext): S
+  def executeAction(params: S)(implicit context: ActionContext): T
+  def renderResult(values: T)(implicit context: ActionContext): PlainResult
+
+  // run is the main method of this Controller.
+  // We have to define, parseRequest, executeAction, and renderResult
+  def run = Action { request: Request[AnyContent] =>
     val beginTime = System.currentTimeMillis()
-    val context = ensureContext(request)
-    val result = try {
-      doExecute(context)
+
+    implicit val context = prepareActionContext(request)
+    val result: PlainResult = try {
+      val params = parseRequest(request)
+      val t = executeAction(params)
+      renderResult(t)
     } catch {
       case e: DAOException =>
         renderError(ServerErrorCode.ERROR_DATABASE, e)
@@ -35,18 +48,15 @@ abstract class AbstractController extends Controller {
       Logger.info(request.uri + " took " + (endTime - beginTime) + "[msec] to process.")
     }
 
-    result.withSession(
-      context.sessionsToAddResult.foldRight(context.request.session) { (kv, s) => s + kv }
-    )
+    finalizeResult(result)
   }
 
-  private def ensureContext(request: Request[AnyContent]): ActionContext = {
-    val userId: Option[String] = request.session.get(Constants.Session.USER_ID_KEY)
-
-    val user: Option[User] = userId match {
+  def prepareActionContext(request: Request[AnyContent]): ActionContext = {
+    val maybeUserId: Option[String] = request.session.get(Constants.Session.USER_ID_KEY)
+    val user: Option[User] = maybeUserId match {
       case None => None
-      case Some(id) => DB.withConnection { implicit con =>
-          User.find(id)
+      case Some(userId) => DB.withConnection { implicit con: Connection =>
+        User.find(userId)
       }
     }
 
@@ -77,6 +87,16 @@ abstract class AbstractController extends Controller {
 
     return context
   }
+
+  def finalizeResult(result: PlainResult)(implicit context: ActionContext): PlainResult = {
+    val r0 = result;
+    val r1 = if (context.sessionsToAddResult.isEmpty) r0 else r0.withSession(context.sessionsToAddResult: _*)
+    val r2 = if (context.headers.isEmpty) r1 else r1.withHeaders(context.headers: _*)
+    return r2
+  }
+
+  // ----------------------------------------------------------------------
+  // Rendering
 
   protected def renderInvalid(ec: UserErrorCode.Code, e: Option[Throwable] = None): PlainResult
   protected def renderError(ec: ServerErrorCode.Code, e: Option[Throwable] = None): PlainResult
@@ -112,7 +132,7 @@ abstract class AbstractController extends Controller {
         return renderNotFound()
     }
 
-    (e.serverErrorCode, e.userErrorCode) match {
+    (e.maybeServerErrorCode, e.maybeUserErrorCode) match {
       case (Some(ec), None) =>
         return renderError(ec, e.getCause())
       case (None, Some(ec)) =>

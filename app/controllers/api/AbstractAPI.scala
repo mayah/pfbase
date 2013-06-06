@@ -1,15 +1,16 @@
 package controllers.api
+
 import java.nio.charset.Charset
-import controllers.AbstractController
+
+import controllers.base.AbstractController
+import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import play.api.mvc.PlainResult
-import play.api.Logger
 import resources.ServerErrorCode
 import resources.UserErrorCode
-import controllers.ActionContext
 
-abstract class AbstractAPI extends AbstractController {
+abstract class AbstractAPI[S, T] extends AbstractController[S, T] {
   private val UTF8 = Charset.forName("UTF8")
 
   def renderJson(obj: JsValue, status: Int): PlainResult = {
@@ -43,7 +44,6 @@ abstract class AbstractAPI extends AbstractController {
 
     renderJson(obj, INTERNAL_SERVER_ERROR)
   }
-
 
   override protected def renderLoginRequired(): PlainResult = {
     val json = Json.toJson(Map(

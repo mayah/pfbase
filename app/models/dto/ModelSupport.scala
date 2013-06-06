@@ -6,6 +6,9 @@ import anorm.Column
 import anorm.MetaDataItem
 import anorm.TypeDoesNotMatch
 
+/**
+ * ModelSupport provides a few utility methods.
+ */
 trait ModelSupport {
   implicit def rowToUUID: Column[UUID] = {
     Column.nonNull[UUID] { (value, meta) =>

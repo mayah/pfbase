@@ -1,16 +1,18 @@
 package controllers.action
-import controllers.ActionContext
-import play.api.mvc.Action
+
+import controllers.base.ActionContext
+import play.api.mvc.PlainResult
 import play.api.mvc.Request
 import play.api.mvc.AnyContent
-import play.api.mvc.PlainResult
 
-object IndexAction extends AbstractAction {
-
-  def get = execute
-
-  def doExecute(implicit context: ActionContext): PlainResult = {
-    return render(views.html.index("Your new application is ready."))
+object IndexAction extends AbstractAction[Unit, Unit] {
+  def parseRequest(request: Request[AnyContent])(implicit context: ActionContext): Unit = {
   }
 
+  def executeAction(params: Unit)(implicit context: ActionContext): Unit = {
+  }
+
+  def renderResult(values: Unit)(implicit context: ActionContext): PlainResult = {
+    return render(views.html.index("Your new application is ready."))
+  }
 }

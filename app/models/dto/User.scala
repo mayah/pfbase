@@ -1,17 +1,17 @@
 package models.dto
-import models.aux.UserId
+import models.ids.UserId
 import java.sql.Connection
 import java.util.UUID
 import anorm._
 
 class UserEmbryo(val screenName: String)
 
-class User(val userId: UserId, val screenName: String) {
-  def this(id: String, screenName: String) = this(new UserId(id), screenName)
-}
+case class User(
+    val userId: UserId,
+    val screenName: String
+)
 
 object User extends ModelSupport {
-
   def create(id: UserId, embryo: UserEmbryo)(implicit con: Connection): User = {
     SQL("INSERT INTO Users(id, screenName) VALUES({id} :: uuid, {screenName})").on("id" -> id.toString(), "screenName" -> embryo.screenName).execute()
     new User(id, embryo.screenName)
