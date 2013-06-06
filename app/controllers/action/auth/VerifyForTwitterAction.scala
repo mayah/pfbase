@@ -1,36 +1,34 @@
 package controllers.action.auth
 
+import java.sql.Connection
+
+import app.AppGlobal
+import controllers.ActionContext
+import controllers.ServerErrorControllerException
+import controllers.UserErrorControllerException
 import controllers.action.AbstractAction
-import controllers.base.ActionContext
+import models.dto.User
+import models.dto.UserEmbryo
+import models.dto.UserTwitterLink
+import models.dto.UserTwitterLinkEmbryo
+import play.api.Play.current
+import play.api.db.DB
 import play.api.mvc.AnyContent
 import play.api.mvc.PlainResult
 import play.api.mvc.Request
-import play.api.mvc.Result
-import resources.UserErrorCode
-import resources.ServerErrorCode
-import resources.MessageCode
+import play.cache.Cache
 import resources.Constants
-import play.api.cache.Cache
-import play.api.Play.current
+import resources.MessageCode
+import resources.ServerErrorCode
+import resources.UserErrorCode
 import sessions.TwitterLoginInformation
 import twitter4j.TwitterException
-import app.AppGlobal
-import models.dto.User
-import models.dto.UserTwitterLinkEmbryo
-import play.api.db.DB
-import models.dto.UserTwitterLink
-import java.sql.Connection
-import models.dto.UserTwitterLink
-import models.dto.UserEmbryo
-import models.ids.UserId
-import controllers.base.ServerErrorControllerException
-import controllers.base.UserErrorControllerException
-import controllers.base.UserErrorControllerException
-import controllers.base.ServerErrorControllerException
+
 
 case class VerifyForTwitterParams(
     val verifier: String
 )
+
 case class VerifyForTwitterValues(
     val loginInfo: TwitterLoginInformation,
     val messageCode: MessageCode.Code
@@ -82,7 +80,7 @@ object VerifyForTwitterAction extends AbstractAction[VerifyForTwitterParams, Ver
 
   private def loadFromTwitterLinkEmbryo(embryo: UserTwitterLinkEmbryo): User = {
     try {
-      DB.withConnection { implicit con =>
+      DB.withTransaction { implicit con : Connection =>
         updateTwitterLinkAndUser(embryo);
       }
     } catch {

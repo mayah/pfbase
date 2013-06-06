@@ -1,6 +1,6 @@
 package controllers.action
 
-import controllers.base.AbstractController
+import controllers.AbstractController
 import play.api.Logger
 import play.api.mvc.PlainResult
 import play.api.templates.Html

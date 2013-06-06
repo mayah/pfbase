@@ -1,8 +1,9 @@
 package models.dto
+
 import java.util.UUID
 
-import anorm.MayErr.eitherToError
 import anorm.Column
+import anorm.MayErr.eitherToError
 import anorm.MetaDataItem
 import anorm.TypeDoesNotMatch
 

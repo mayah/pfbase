@@ -1,14 +1,13 @@
 package models.dto
+
 import java.sql.Connection
 import java.util.UUID
+
 import anorm.SQL
 import anorm.sqlToSimple
 import anorm.toParameterValue
 import models.ids.UserId
 import models.ids.UserTwitterLinkId
-import anorm.Column
-import anorm.MetaDataItem
-import anorm.TypeDoesNotMatch
 
 class UserTwitterLinkEmbryo(
     val twitterId: Long,

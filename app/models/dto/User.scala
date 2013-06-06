@@ -1,8 +1,12 @@
 package models.dto
-import models.ids.UserId
+
 import java.sql.Connection
 import java.util.UUID
-import anorm._
+
+import anorm.SQL
+import anorm.sqlToSimple
+import anorm.toParameterValue
+import models.ids.UserId
 
 class UserEmbryo(val screenName: String)
 

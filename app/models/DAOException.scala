@@ -1,3 +1,3 @@
-package models.base
+package models
 
 class DAOException extends Exception

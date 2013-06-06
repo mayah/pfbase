@@ -2,7 +2,7 @@ package controllers.api
 
 import java.nio.charset.Charset
 
-import controllers.base.AbstractController
+import controllers.AbstractController
 import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json

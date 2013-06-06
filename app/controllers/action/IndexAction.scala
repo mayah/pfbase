@@ -1,6 +1,6 @@
 package controllers.action
 
-import controllers.base.ActionContext
+import controllers.ActionContext
 import play.api.mvc.PlainResult
 import play.api.mvc.Request
 import play.api.mvc.AnyContent

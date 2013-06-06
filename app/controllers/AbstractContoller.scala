@@ -1,7 +1,9 @@
-package controllers.base
+package controllers
 
+import java.sql.Connection
 import java.util.UUID
-import models.base.DAOException
+
+import models.DAOException
 import models.dto.User
 import play.api.Logger
 import play.api.Play.current
@@ -15,7 +17,6 @@ import resources.Constants
 import resources.MessageCode
 import resources.ServerErrorCode
 import resources.UserErrorCode
-import java.sql.Connection
 
 /**
  * In this framework, we make

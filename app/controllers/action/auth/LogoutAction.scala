@@ -1,7 +1,7 @@
 package controllers.action.auth
 
+import controllers.ActionContext
 import controllers.action.AbstractAction
-import controllers.base.ActionContext
 import play.api.mvc.AnyContent
 import play.api.mvc.PlainResult
 import play.api.mvc.Request

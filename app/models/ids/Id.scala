@@ -1,4 +1,5 @@
 package models.ids
+
 import java.util.UUID
 
 class Id(val id: UUID) {

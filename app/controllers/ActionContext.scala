@@ -1,4 +1,4 @@
-package controllers.base
+package controllers
 
 import models.dto.User
 import play.api.mvc.AnyContent

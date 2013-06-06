@@ -1,4 +1,4 @@
-package controllers.base
+package controllers
 
 import resources.ServerErrorCode
 import resources.UserErrorCode

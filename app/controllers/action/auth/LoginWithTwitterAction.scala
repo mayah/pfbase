@@ -1,19 +1,18 @@
 package controllers.action.auth
-import controllers.action.AbstractAction
-import play.api.mvc.Request
-import play.api.mvc.Result
-import controllers.base.ActionContext
-import play.api.mvc.AnyContent
-import play.api.mvc.Controller
-import play.api.mvc.PlainResult
+
 import app.AppGlobal
-import resources.Constants
-import play.api.cache.Cache
+import controllers.ActionContext
+import controllers.ServerErrorControllerException
+import controllers.action.AbstractAction
 import play.api.Play.current
-import twitter4j.TwitterException
+import play.api.cache.Cache
+import play.api.mvc.AnyContent
+import play.api.mvc.PlainResult
+import play.api.mvc.Request
+import resources.Constants
 import resources.ServerErrorCode
 import sessions.TwitterLoginInformation
-import controllers.base.ServerErrorControllerException
+import twitter4j.TwitterException
 
 case class LoginWithTwitterParams(
     val redirectURL: Option[String]
