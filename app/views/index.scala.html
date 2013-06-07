@@ -1,7 +1,131 @@
-@(message: String)(implicit context: controllers.ActionContext)
+@(message: String)(implicit context: controllers.ActionContext)@main("BASE") {
+<div class="container">
+	<div class="row">
+		<div class="span16"><div class="hero-unit">
+			<h1>BASE へようこそ</h1>
+			<p>本文</p>
+		</div></div>
+		<div class="span8">
+			<h3>BASE を始めませんか？</h3>
+			<form id="register-form">
+				<div id="register-email-control" class="control-group no-margin">
+					<input id="register-email" type="email" name="email" value="" placeholder="メールアドレス" class="span8">
+					<span id="register-email-help" class="help-inline hidden"></span>
+				</div>
+				<div id="register-name-control" class="control-group no-margin">
+					<input id="register-name" type="text" name="name" value="" placeholder="名前" class="span8">
+					<span id="register-name-help" class="help-inline hidden"></span>
+				</div>
+				<div id="register-password-control" class="control-group no-margin">
+					<input id="register-password" type="password" name="password" value="" placeholder="パスワード" class="span8">
+					<input id="register-confirmation" type="password" name="password-confirmation" value="" placeholder="パスワード (確認)" class="span8">
+					<span id="register-password-help" class="help-inline hidden"></span>
+				</div>
+				<input id="register-submit" type="submit" value="BASE に登録する" class="btn btn-info pull-right">
+			</form>
+		</div>
+		<script>
+		function showErrorMessage(idPrefix, errorMessage) {
+			$('#' + idPrefix + '-help').text(errorMessage).removeClass('hidden');
+			$('#' + idPrefix + '-control').addClass('error').removeClass('no-margin');
+		}
+		function removeErrorMessage(idPrefix) {
+			$('#' + idPrefix + '-help').addClass('hidden');
+			$('#' + idPrefix + '-control').removeClass('error').addClass('no-margin');
+		}
 
-@main("Welcome to Play 2.0") {
+		function checkEmailValidity() {
+			var email = $('#register-email').val().trim();
 
-    @play20.welcome(message)
+			if (!email || email == "") {
+				showErrorMessage('register-email', 'メールアドレスを入力して下さい。');
+				return false;
+			}
 
+			if (!$('#register-email')[0].checkValidity()) {
+				showErrorMessage('register-email', '有効なメールアドレスの形式ではありません。');
+				return false;
+			}
+
+			removeErrorMessage('register-email');
+			return true;
+		}
+
+		function checkNameValidity() {
+			var name = $('#register-name').val().trim();
+			if (!name || name == "") {
+				showErrorMessage('register-name', '名前を入力して下さい。');
+				return false;
+			}
+
+			removeErrorMessage('register-name');
+			return true;
+		}
+
+		function checkPasswordValidity() {
+			var password = $('#register-password').val().trim();
+			var confirmation = $('#register-confirmation').val().trim();
+
+			if (password.length < 6) {
+				showErrorMessage('register-password', 'パスワードは６文字以上で入力して下さい。');
+				return false;
+			}
+
+			if (password != confirmation) {
+				showErrorMessage('register-password', 'パスワードと確認用パスワードが一致しません。');
+				return false;
+			}
+
+			removeErrorMessage('register-password');
+			return true;
+		}
+
+		$(document).ready(function() {
+			$('#register-email').focus(function() {
+				removeErrorMessage('register-email');
+			}).blur(function() {
+				checkEmailValidity();
+			});
+			$('#register-name').focus(function() {
+				removeErrorMessage('register-name');
+			}).blur(function() {
+				checkNameValidity();
+			});
+			$('#register-password, #register-confirmation').focus(function() {
+				removeErrorMessage('register-password');
+			}).blur(function() {
+				checkPasswordValidity();
+			});
+
+			$('#register-form').submit(function() {
+				var ok = true;
+				ok &= checkEmailValidity();
+				ok &= checkNameValidity();
+				ok &= checkPasswordValidity();
+
+				if (!ok)
+					return false;
+
+				$('#register-submit').attr('disabled', 'disabled');
+
+				var arg = {
+					name: $('#register-name').val().trim(),
+					email: $('#register-email').val().trim(),
+					password: $('#register-password').val().trim(),
+					sessionToken: "@context.sessionToken"
+				}
+
+				$.post('/api/auth/register', arg).done(function() {
+				    location.href = '/';
+				}).fail(function(xhr) {
+					console.log(xhr);
+					$('#register-submit').removeAttr('disabled');
+				})
+
+				return false;
+			});
+		});
+		</script>
+	</div>
+</div>
 }

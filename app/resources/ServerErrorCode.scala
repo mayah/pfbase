@@ -6,11 +6,8 @@ object ServerErrorCode extends Enumeration {
   val ERROR_DATABASE = Code("error.database", 500)
   val TWITTER_OAUTH_ERROR = Code("error.twitter.oauth", 500)
 
-
-  case class Code(errorDescriptionId: String, status: Int) extends Val(errorDescriptionId) {
-    def reasonString = Messages(errorDescriptionId)
-    def descriptionId = errorDescriptionId
-    def statusCode = status
+  case class Code(val descriptionId: String, val statusCode: Int) extends Val(descriptionId) {
+    def description = Messages(descriptionId)
   }
 }
 

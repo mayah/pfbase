@@ -26,7 +26,7 @@ object LoginWithTwitterAction extends AbstractAction[LoginWithTwitterParams, Log
   private val LOGIN_TIMEOUT_SEC = 300
 
   override def parseRequest(request: Request[AnyContent])(implicit context: ActionContext): LoginWithTwitterParams = {
-    val redirectURL = param("redirectURL")
+    val redirectURL = queryParam("redirectURL")
     return LoginWithTwitterParams(redirectURL)
   }
 

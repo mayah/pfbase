@@ -3,15 +3,18 @@
 # --- !Ups
 
 CREATE TABLE Users(
-    id          UUID        PRIMARY KEY,
-    screenName  TEXT        NOT NULL,
+    id          UUID            PRIMARY KEY,
+    name        VARCHAR(16)     NOT NULL
 );
-CREATE UNIQUE INDEX ScreenNameOnUsers ON Users(screenName);
 
-CREATE TABLE UserPasswords(
+-- Since we don't want to have this for long in memory.
+CREATE TABLE UserEmailPasswords(
     userId          UUID                PRIMARY KEY,
-    hashedPassword  VARCHAR(256)        NOT NULL,
+    email           VARCHAR(256)        NOT NULL,
+    hashedPassword  VARCHAR(256)        NOT NULL
 );
+CREATE UNIQUE INDEX EmailOnUserEmailPasswords ON UserEmailPasswords(email);
+
 
 CREATE TABLE UserTwitterLinks(
     id                  UUID        PRIMARY KEY,
@@ -28,7 +31,7 @@ CREATE UNIQUE INDEX TwitterIdOnUsrTwitterLinks ON UserTwitterLinks(twitterId);
 
 # --- !Downs
 
-DROP TABLE Users;
-DROP TABLE UserPasswords;
-DROP TABLE UserTwitterLinks;
+DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS UserPasswords;
+DROP TABLE IF EXISTS UserTwitterLinks;
 

@@ -39,11 +39,11 @@ abstract class AbstractController[S, T] extends Controller {
       renderResult(t)
     } catch {
       case e: DAOException =>
-        renderError(ServerErrorCode.ERROR_DATABASE, e)
+        renderError(ServerErrorCode.ERROR_DATABASE, Some(e))
       case e: ControllerException =>
         renderException(e)
       case e: Exception =>
-        renderError(ServerErrorCode.ERROR_UNKNOWN, e)
+        renderError(ServerErrorCode.ERROR_UNKNOWN, Some(e))
     } finally {
       val endTime = System.currentTimeMillis()
       Logger.info(request.uri + " took " + (endTime - beginTime) + "[msec] to process.")
@@ -99,14 +99,11 @@ abstract class AbstractController[S, T] extends Controller {
   // ----------------------------------------------------------------------
   // Rendering
 
-  protected def renderInvalid(ec: UserErrorCode.Code, e: Option[Throwable] = None): PlainResult
-  protected def renderError(ec: ServerErrorCode.Code, e: Option[Throwable] = None): PlainResult
+  protected def renderInvalid(ec: UserErrorCode.Code, e: Option[Throwable] = None, optionalInfo: Option[Map[String, String]] = None): PlainResult
+  protected def renderError(ec: ServerErrorCode.Code, e: Option[Throwable] = None, optionalInfo: Option[Map[String, String]] = None): PlainResult
   protected def renderLoginRequired(): PlainResult
   protected def renderForbidden(): PlainResult
   protected def renderNotFound(): PlainResult
-
-  protected def renderInvalid(ec: UserErrorCode.Code, e: Throwable): PlainResult = renderInvalid(ec, Option(e))
-  protected def renderError(ec: ServerErrorCode.Code, e: Throwable): PlainResult = renderError(ec, Option(e))
 
   protected def renderRedirect(url: String): PlainResult =
     renderRedirect(url, None)
@@ -131,26 +128,60 @@ abstract class AbstractController[S, T] extends Controller {
         return renderForbidden()
       case 404 =>
         return renderNotFound()
+      case _ =>
+        ()
     }
 
-    (e.maybeServerErrorCode, e.maybeUserErrorCode) match {
-      case (Some(ec), None) =>
-        return renderError(ec, e.getCause())
-      case (None, Some(ec)) =>
-        return renderInvalid(ec, e.getCause())
-      case _ =>
-        assert(false)
-        throw new RuntimeException()
+    if (e.isInstanceOf[ServerErrorControllerException]) {
+      val se = e.asInstanceOf[ServerErrorControllerException]
+      return renderError(se.errorCode, se.optionalCause, se.optionalInfo);
     }
+
+    if (e.isInstanceOf[UserErrorControllerException]) {
+      val ue = e.asInstanceOf[UserErrorControllerException]
+      return renderInvalid(ue.errorCode, ue.optionalCause, ue.optionalInfo);
+    }
+
+    assert(false);
+    throw new RuntimeException()
   }
 
   // ----------------------------------------------------------------------
 
-  def param(key: String)(implicit context: ActionContext) = {
+  def queryParam(key: String)(implicit context: ActionContext): Option[String] = {
     context.request.queryString.get(key) match {
       case None => None
       case Some(values) => values.headOption
     }
   }
+
+  def formParam(key: String)(implicit context: ActionContext): Option[String] = {
+    context.request.body.asFormUrlEncoded match {
+      case None => return None
+      case Some(map) =>
+        map.get(key).headOption match {
+          case None => return None
+          case Some(seq) => return seq.headOption
+        }
+    }
+  }
+
+  def ensureQueryParam(key: String)(implicit context: ActionContext): String = {
+    queryParam(key) match {
+      case None =>
+        throw new UserErrorControllerException(UserErrorCode.INVALID_FORM_PARAMETERS, Map(key -> "missing"))
+      case Some(x) => x
+    }
+  }
+
+  def ensureFormParam(key: String)(implicit context: ActionContext): String = {
+    formParam(key) match {
+      case None =>
+        throw new UserErrorControllerException(UserErrorCode.INVALID_FORM_PARAMETERS, Map(key -> "missing"))
+      case Some(x) => x
+    }
+  }
+
+
 }
 

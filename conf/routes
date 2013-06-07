@@ -10,5 +10,9 @@ GET     /auth/loginWithTwitter      controllers.action.auth.LoginWithTwitterActi
 GET     /auth/verifyForTwitter      controllers.action.auth.VerifyForTwitterAction.run()
 GET     /auth/logout                controllers.action.auth.LogoutAction.run()
 
+# API
+POST	/api/auth/login				controllers.api.user.UserLoginAPI.run()
+POST	/api/auth/register			controllers.api.user.UserRegisterAPI.run()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

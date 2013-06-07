@@ -10,21 +10,21 @@ import resources.UserErrorCode
 abstract class AbstractAction[S, T] extends AbstractController[S, T] {
   protected def render(content: Html): PlainResult = Ok(content)
 
-  override protected def renderInvalid(ec: UserErrorCode.Code, e: Option[Throwable] = None): PlainResult = {
+  override protected def renderInvalid(ec: UserErrorCode.Code, e: Option[Throwable] = None, optionalInfo: Option[Map[String, String]] = None): PlainResult = {
     e match {
       case None => BadRequest
       case Some(x) =>
         Logger.info("renderInvalid", x)
-        Redirect("/invalid?errorCode=" + ec.errorDescriptionId)
+        Redirect("/invalid?errorCode=" + ec.descriptionId)
     }
   }
 
-  override protected def renderError(ec: ServerErrorCode.Code, e: Option[Throwable] = None): PlainResult = {
+  override protected def renderError(ec: ServerErrorCode.Code, e: Option[Throwable] = None, optionalInfo: Option[Map[String, String]] = None): PlainResult = {
     e match {
       case None => InternalServerError
       case Some(x) =>
         Logger.info("renderError", x);
-        Redirect("/error?errorCode=" + ec.errorDescriptionId)
+        Redirect("/error?errorCode=" + ec.descriptionId)
     }
   }
 

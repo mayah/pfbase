@@ -36,7 +36,7 @@ case class VerifyForTwitterValues(
 
 object VerifyForTwitterAction extends AbstractAction[VerifyForTwitterParams, VerifyForTwitterValues] {
   override def parseRequest(request: Request[AnyContent])(implicit context: ActionContext): VerifyForTwitterParams = {
-    val verifier: String = param("oauth_verifier") match {
+    val verifier: String = queryParam("oauth_verifier") match {
       case None =>
         throw new UserErrorControllerException(UserErrorCode.INVALID_OAUTH_VERIFIER)
       case Some(x) => x
@@ -57,7 +57,7 @@ object VerifyForTwitterAction extends AbstractAction[VerifyForTwitterParams, Ver
       val twitterService = AppGlobal.twitterService
       val embryo = twitterService.createTwitterLinkFromLoginInformation(loginInfo, params.verifier)
       val user: User = loadFromTwitterLinkEmbryo(embryo)
-      context.shouldAddToSession(Constants.Session.USER_ID_KEY, user.userId.toString())
+      context.shouldAddToSession(Constants.Session.USER_ID_KEY, user.id.toString())
 
       MessageCode.MESSAGE_AUTH_LOGIN
     } catch {

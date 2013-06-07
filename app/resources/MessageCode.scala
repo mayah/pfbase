@@ -6,8 +6,7 @@ object MessageCode extends Enumeration {
   val MESSAGE_AUTH_LOGIN = Code("message.auth.login")
   val MESSAGE_AUTH_LOGOUT = Code("message.auth.logout")
 
-  case class Code(errorDescriptionId: String) extends Val(errorDescriptionId) {
-    def reasonString = Messages(errorDescriptionId)
-    def descriptionId = errorDescriptionId
+  case class Code(val descriptionId: String) extends Val(descriptionId) {
+    def description = Messages(descriptionId)
   }
 }
