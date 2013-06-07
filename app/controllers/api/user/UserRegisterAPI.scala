@@ -15,6 +15,7 @@ import models.dto.UserEmbryo
 import org.apache.commons.codec.digest.DigestUtils
 import play.api.Play.current
 import models.dto.UserEmailPasswordEmbryo
+import resources.Constants
 
 case class UserRegisterParams(val email: String, val name: String, val password: String)
 case class UserRegisterValues(val user: User)
@@ -48,6 +49,7 @@ object UserRegisterAPI extends AbstractAPI[UserRegisterParams, UserRegisterValue
       User.find(userId).get
     }
 
+    context.addSessionValue(Constants.Session.USER_ID_KEY, user.id.toString())
     return UserRegisterValues(user)
   }
 

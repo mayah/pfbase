@@ -116,9 +116,22 @@
 				}
 
 				$.post('/api/auth/register', arg).done(function() {
+					// login OK.
 				    location.href = '/';
 				}).fail(function(xhr) {
-					console.log(xhr);
+					// login failed.
+					var json = $.parseJSON(xhr.responseText);
+					if (json['optionalInfo']) {
+						if (json['optionalInfo']['email']) {
+							showErrorMessage('register-email', json['optionalInfo']['email']);
+						}
+						if (json['optionalInfo']['name']) {
+							showErrorMessage('register-name', json['optionalInfo']['name']);
+						}
+						if (json['optionalInfo']['password']) {
+							showErrorMessage('register-password', json['optionalInfo']['password']);
+						}
+					}
 					$('#register-submit').removeAttr('disabled');
 				})
 

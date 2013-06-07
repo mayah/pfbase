@@ -57,7 +57,7 @@ object VerifyForTwitterAction extends AbstractAction[VerifyForTwitterParams, Ver
       val twitterService = AppGlobal.twitterService
       val embryo = twitterService.createTwitterLinkFromLoginInformation(loginInfo, params.verifier)
       val user: User = loadFromTwitterLinkEmbryo(embryo)
-      context.shouldAddToSession(Constants.Session.USER_ID_KEY, user.id.toString())
+      context.addSessionValue(Constants.Session.USER_ID_KEY, user.id.toString())
 
       MessageCode.MESSAGE_AUTH_LOGIN
     } catch {

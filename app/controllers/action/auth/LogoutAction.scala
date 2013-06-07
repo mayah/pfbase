@@ -15,7 +15,8 @@ object LogoutAction extends AbstractAction[Unit, Unit] {
   }
 
   override def renderResult(values: Unit)(implicit context: ActionContext): PlainResult = {
-    renderRedirect("/", MessageCode.MESSAGE_AUTH_LOGOUT).withNewSession
+    context.discardSession();
+    renderRedirect("/", MessageCode.MESSAGE_AUTH_LOGOUT);
   }
 }
 

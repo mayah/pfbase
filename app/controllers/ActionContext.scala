@@ -36,9 +36,12 @@ class ActionContext(
     return messageCodes != List.empty || userErrorCodes != List.empty || serverErrorCodes != List.empty
   }
 
-  var sessionsToAddResult: List[(String, String)] = List.empty
-  def shouldAddToSession(key: String, value: String) {
-    sessionsToAddResult = (key, value) :: sessionsToAddResult
+  var sessionValues: List[(String, String)] = List.empty
+  def addSessionValue(key: String, value: String) {
+    sessionValues = (key, value) :: sessionValues
+  }
+  def discardSession() {
+    sessionValues = List.empty
   }
 
   var headers: List[(String, String)] = List.empty

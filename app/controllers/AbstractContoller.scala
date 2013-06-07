@@ -33,10 +33,11 @@ abstract class AbstractController[S, T] extends Controller {
     val beginTime = System.currentTimeMillis()
 
     implicit val context = prepareActionContext(request)
+
     val result: PlainResult = try {
       val params = parseRequest(request)
-      val t = executeAction(params)
-      renderResult(t)
+      val values = executeAction(params)
+      renderResult(values)
     } catch {
       case e: DAOException =>
         renderError(ServerErrorCode.ERROR_DATABASE, Some(e))
@@ -54,6 +55,7 @@ abstract class AbstractController[S, T] extends Controller {
 
   def prepareActionContext(request: Request[AnyContent]): ActionContext = {
     val maybeUserId: Option[String] = request.session.get(Constants.Session.USER_ID_KEY)
+
     val user: Option[User] = maybeUserId match {
       case None => None
       case Some(userId) => DB.withConnection { implicit con: Connection =>
@@ -63,35 +65,29 @@ abstract class AbstractController[S, T] extends Controller {
 
     val currentURL: String = request.uri
 
-    var sessionsToBeAdded: List[(String, String)] = List.empty
-
     val sessionToken: String = request.session.get(Constants.Session.TOKEN_KEY) match {
-      case None =>
-        var token = UUID.randomUUID().toString()
-        sessionsToBeAdded = (Constants.Session.TOKEN_KEY -> token) :: sessionsToBeAdded
-        token
+      case None => UUID.randomUUID().toString()
       case Some(x) => x
     }
 
     val sessionId: String = request.session.get(Constants.Session.ID_KEY) match {
-      case None =>
-        val id = UUID.randomUUID().toString()
-        sessionsToBeAdded = (Constants.Session.ID_KEY -> UUID.randomUUID().toString()) :: sessionsToBeAdded
-        id
+      case None => UUID.randomUUID().toString()
       case Some(x) => x
     }
 
     val context = new ActionContext(user, request, sessionToken, sessionId, currentURL)
 
-    for (kv <- sessionsToBeAdded)
-      context.shouldAddToSession(kv._1, kv._2)
+    // --- prepare session values
+    context.addSessionValue(Constants.Session.TOKEN_KEY, sessionToken)
+    context.addSessionValue(Constants.Session.ID_KEY, sessionId)
+    if (user != None)
+        context.addSessionValue(Constants.Session.USER_ID_KEY, user.get.id.toString)
 
     return context
   }
 
   def finalizeResult(result: PlainResult)(implicit context: ActionContext): PlainResult = {
-    val r0 = result;
-    val r1 = if (context.sessionsToAddResult.isEmpty) r0 else r0.withSession(context.sessionsToAddResult: _*)
+    val r1 = result.withSession(context.sessionValues.reverse: _*)
     val r2 = if (context.headers.isEmpty) r1 else r1.withHeaders(context.headers: _*)
     return r2
   }
@@ -153,6 +149,10 @@ abstract class AbstractController[S, T] extends Controller {
       case None => None
       case Some(values) => values.headOption
     }
+  }
+
+  def queryMultipleParams(key: String)(implicit context: ActionContext): Option[Seq[String]] = {
+    context.request.queryString.get(key)
   }
 
   def formParam(key: String)(implicit context: ActionContext): Option[String] = {

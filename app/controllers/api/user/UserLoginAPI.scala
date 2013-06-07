@@ -37,7 +37,7 @@ object UserLoginAPI extends AbstractAPI[UserLoginParams, UserLoginValues] {
       case Some(user) => user
     }
 
-    context.shouldAddToSession(Constants.Session.USER_ID_KEY, user.id.toString())
+    context.addSessionValue(Constants.Session.USER_ID_KEY, user.id.toString())
     return UserLoginValues(user)
   }
 
