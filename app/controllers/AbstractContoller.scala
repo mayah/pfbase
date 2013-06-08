@@ -3,6 +3,7 @@ package controllers
 import java.sql.Connection
 import java.util.UUID
 
+import controllers.action.LongLiveSession
 import models.DAOException
 import models.dto.User
 import play.api.Logger
@@ -54,14 +55,8 @@ abstract class AbstractController[S, T] extends Controller {
   }
 
   def prepareActionContext(request: Request[AnyContent]): ActionContext = {
-    val maybeUserId: Option[String] = request.session.get(Constants.Session.USER_ID_KEY)
-
-    val user: Option[User] = maybeUserId match {
-      case None => None
-      case Some(userId) => DB.withConnection { implicit con: Connection =>
-        User.find(userId)
-      }
-    }
+    val userFromSession: Option[User] = maybeUserFromSession(request)
+    val userFromLongLiveSession: Option[User] = maybeUserFromLongLiveSession(request)
 
     val currentURL: String = request.uri
 
@@ -75,13 +70,24 @@ abstract class AbstractController[S, T] extends Controller {
       case Some(x) => x
     }
 
-    val context = new ActionContext(user, request, sessionToken, sessionId, currentURL)
+    val context = new ActionContext(userFromSession.orElse(userFromLongLiveSession), request, sessionToken, sessionId, currentURL)
+
+    // --- prepare messages
+    request.flash.get(Constants.Flash.MESSAGE_ID) match {
+      case None => ()
+      case Some(x) =>
+        println("flash: " + x)
+        context.addMessageCode(MessageCode.Code(x))
+    }
 
     // --- prepare session values
     context.addSessionValue(Constants.Session.TOKEN_KEY, sessionToken)
     context.addSessionValue(Constants.Session.ID_KEY, sessionId)
-    if (user != None)
-        context.addSessionValue(Constants.Session.USER_ID_KEY, user.get.id.toString)
+    if (userFromSession != None) {
+        context.addSessionValue(Constants.Session.USER_ID_KEY, userFromSession.get.id.toString)
+    } else if (userFromLongLiveSession != None) {
+        context.addLongLiveSessionValue(Constants.Session.USER_ID_KEY, userFromLongLiveSession.get.id.toString)
+    }
 
     return context
   }
@@ -89,30 +95,59 @@ abstract class AbstractController[S, T] extends Controller {
   def finalizeResult(result: PlainResult)(implicit context: ActionContext): PlainResult = {
     val r1 = result.withSession(context.sessionValues.reverse: _*)
     val r2 = if (context.headers.isEmpty) r1 else r1.withHeaders(context.headers: _*)
-    return r2
+    val r3 = r2.flashing(context.flashingValues: _*)
+
+    if (context.longliveSessionValues.isEmpty) {
+      return r3.discardingCookies(LongLiveSession.discard)
+    } else {
+      val longliveSession = LongLiveSession(context.longliveSessionValues.toMap)
+      return r3.withCookies(LongLiveSession.encodeAsCookie(longliveSession))
+    }
+  }
+
+  private def maybeUserFromSession(request: Request[AnyContent]): Option[User] = {
+    request.session.get(Constants.Session.USER_ID_KEY) match {
+      case None => None
+      case Some(userId) => DB.withConnection { implicit con: Connection =>
+        User.find(userId)
+      }
+    }
+  }
+
+  private def maybeUserFromLongLiveSession(request: Request[AnyContent]): Option[User] = {
+    // We have to decode long live session by ourselves.
+    val longliveSession = LongLiveSession.decodeFromCookie(request.cookies.get(LongLiveSession.COOKIE_NAME))
+    longliveSession.get(Constants.Session.USER_ID_KEY) match {
+      case None => None
+      case Some(userId) => DB.withConnection { implicit con: Connection =>
+        User.find(userId)
+      }
+    }
   }
 
   // ----------------------------------------------------------------------
   // Rendering
 
+  // TODO(mayah): Why these methods do not take ActionContext?
   protected def renderInvalid(ec: UserErrorCode.Code, e: Option[Throwable] = None, optionalInfo: Option[Map[String, String]] = None): PlainResult
   protected def renderError(ec: ServerErrorCode.Code, e: Option[Throwable] = None, optionalInfo: Option[Map[String, String]] = None): PlainResult
   protected def renderLoginRequired(): PlainResult
   protected def renderForbidden(): PlainResult
   protected def renderNotFound(): PlainResult
 
-  protected def renderRedirect(url: String): PlainResult =
+  protected def renderRedirect(url: String)(implicit context: ActionContext): PlainResult =
     renderRedirect(url, None)
 
-  protected def renderRedirect(url: String, code: MessageCode.Code): PlainResult =
+  protected def renderRedirect(url: String, code: MessageCode.Code)(implicit context: ActionContext): PlainResult =
     renderRedirect(url, Option(code))
 
-  protected def renderRedirect(url: String, code: Option[MessageCode.Code]): PlainResult = {
+  protected def renderRedirect(url: String, code: Option[MessageCode.Code])(implicit context: ActionContext): PlainResult = {
     code match {
-      case None => Redirect(url)
-      case Some(c) => Redirect(url).flashing(
-        Constants.Flash.MESSAGE_ID -> c.descriptionId
-      )
+      case None =>
+        Redirect(url)
+      case Some(c) =>
+        context.addFlashing(Constants.Flash.MESSAGE_ID, c.descriptionId);
+        Redirect(url)
     }
   }
 
@@ -143,6 +178,7 @@ abstract class AbstractController[S, T] extends Controller {
   }
 
   // ----------------------------------------------------------------------
+  // parsing
 
   def queryParam(key: String)(implicit context: ActionContext): Option[String] = {
     context.request.queryString.get(key) match {
@@ -182,6 +218,11 @@ abstract class AbstractController[S, T] extends Controller {
     }
   }
 
-
+  def parseCheckBoxParam(value: String): Boolean = {
+    value.toLowerCase() match {
+      case "yes" | "t" | "true" | "on" => true
+      case _ => false
+    }
+  }
 }
 

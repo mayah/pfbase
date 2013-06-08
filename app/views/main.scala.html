@@ -1,4 +1,4 @@
-@(title: String)(content: Html)(implicit context: controllers.ActionContext)<!DOCTYPE html>
+@(title: String, doesShowMessage: Boolean = true)(content: Html)(implicit context: controllers.ActionContext)<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
@@ -11,6 +11,7 @@
 <body>
 @base.header()
 <main>
+@if(doesShowMessage) {@base.messages()}
 @content
 </main>
 @base.footer()

@@ -8,10 +8,14 @@ class Id(val id: UUID) {
   override def toString(): String = id.toString()
 }
 
-class UserId(id: UUID) extends Id(id) {
+case class UserId(override val id: UUID) extends Id(id) {
   def this(idStr: String) = this(UUID.fromString(idStr))
 }
 
-class UserTwitterLinkId(id: UUID) extends Id(id) {
+object UserId {
+  def invalidId = new UserId(new UUID(0, 0))
+}
+
+case class UserTwitterLinkId(override val id: UUID) extends Id(id) {
   def this(idStr: String) = this(UUID.fromString(idStr))
 }

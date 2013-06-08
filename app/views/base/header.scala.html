@@ -1,4 +1,4 @@
-@(doesShowMessage: Boolean = true)(implicit context: controllers.ActionContext)
+@()(implicit context: controllers.ActionContext)
 <div class="navbar navbar-fixed-top navbar-inverse">
     <div class="navbar-inner">
         <div class="container">
@@ -66,7 +66,7 @@
 	                        	var args = {
 	                        		email: $('#login-email').val().trim(),
 	                        		password: $('#login-password').val().trim(),
-	                        		rememberme: $('#login-rememberme').val().trim(),
+	                        		rememberme: $('#login-rememberme:checked').val() ? 'yes' : 'no',
 	                        		sessionToken: "@context.sessionToken"
 	                        	};
 
@@ -113,25 +113,3 @@
     </div>
 </div>
 
-@if(doesShowMessage && context.hasSomeMessages) {
-<div class="container"><div class="message">
-    @for(messageCode <- context.messageCodes) {
-        <div class="alert alert-info fade in">
-            <a class="close" data-dismiss="alert" href="#">&times;</a>
-            @messageCode.description
-        </div>
-    }
-    @for(userErrorCode <- context.userErrorCodes) {
-        <div class="alert alert-warning fade in">
-            <a class="close" data-dismiss="alert" href="#">&times;</a>
-            @userErrorCode.description
-        </div>
-    }
-    @for(serverErrorCode <- context.serverErrorCodes) {
-        <div class="alert alert-error fade in">
-            <a class="close" data-dismiss="alert" href="#">&times;</a>
-            @serverErrorCode.description
-        </div>
-    }
-</div></div>
-}

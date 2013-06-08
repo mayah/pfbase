@@ -6,6 +6,7 @@ import play.api.mvc.Request
 import resources.MessageCode
 import resources.UserErrorCode
 import resources.ServerErrorCode
+import play.api.mvc.Cookie
 
 /** ActionContext contains several information per a user request.
  */
@@ -36,12 +37,27 @@ class ActionContext(
     return messageCodes != List.empty || userErrorCodes != List.empty || serverErrorCodes != List.empty
   }
 
+  // ----------------------------------------------------------------------
+
   var sessionValues: List[(String, String)] = List.empty
   def addSessionValue(key: String, value: String) {
     sessionValues = (key, value) :: sessionValues
   }
   def discardSession() {
     sessionValues = List.empty
+  }
+
+  var longliveSessionValues: List[(String, String)] = List.empty
+  def addLongLiveSessionValue(key: String, value: String) {
+    longliveSessionValues = (key, value) :: longliveSessionValues
+  }
+  def discardLongLiveSession() {
+    longliveSessionValues = List.empty
+  }
+
+  var flashingValues: List[(String, String)] = List.empty
+  def addFlashing(key: String, value: String) {
+    flashingValues = (key, value) :: flashingValues
   }
 
   var headers: List[(String, String)] = List.empty

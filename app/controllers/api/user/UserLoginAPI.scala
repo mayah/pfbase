@@ -13,16 +13,19 @@ import play.api.mvc.PlainResult
 import play.api.mvc.Request
 import resources.UserErrorCode
 import resources.Constants
+import play.api.mvc.Cookie
+import play.api.mvc.Session
+import resources.MessageCode
 
-case class UserLoginParams(val email: String, val password: String)
+case class UserLoginParams(val email: String, val password: String, val rememberMe: Boolean)
 case class UserLoginValues(val user: User)
 
 object UserLoginAPI extends AbstractAPI[UserLoginParams, UserLoginValues] {
   override def parseRequest(request: Request[AnyContent])(implicit context: ActionContext): UserLoginParams = {
     val email: String = ensureFormParam("email").trim()
     val password: String = ensureFormParam("password").trim()
-
-    return UserLoginParams(email, password)
+    val rememberMe: Boolean = parseCheckBoxParam(ensureFormParam("rememberme").trim())
+    return UserLoginParams(email, password, rememberMe)
   }
 
   override def executeAction(params: UserLoginParams)(implicit context: ActionContext): UserLoginValues = {
@@ -37,11 +40,16 @@ object UserLoginAPI extends AbstractAPI[UserLoginParams, UserLoginValues] {
       case Some(user) => user
     }
 
-    context.addSessionValue(Constants.Session.USER_ID_KEY, user.id.toString())
+    if (params.rememberMe) {
+      context.addLongLiveSessionValue(Constants.Session.USER_ID_KEY, user.id.toString())
+    } else {
+      context.addSessionValue(Constants.Session.USER_ID_KEY, user.id.toString())
+    }
     return UserLoginValues(user)
   }
 
   override def renderResult(values: UserLoginValues)(implicit context: ActionContext): PlainResult = {
+    context.addFlashing(Constants.Flash.MESSAGE_ID, MessageCode.MESSAGE_AUTH_LOGIN.descriptionId)
     return renderJson(values.user.toJSON())
   }
 }
