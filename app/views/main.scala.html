@@ -10,10 +10,12 @@
 </head>
 <body>
 @base.header()
-<main>
+<div class="main">
 @if(doesShowMessage) {@base.messages()}
+<main>
 @content
 </main>
+</div>
 @base.footer()
 </body>
 </html>
