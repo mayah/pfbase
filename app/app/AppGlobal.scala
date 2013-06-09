@@ -10,12 +10,12 @@ object AppGlobal extends GlobalSettings {
   var twitterService: TwitterService = null
 
   override def beforeStart(app: Application) = {
-    Logger.info("AppGlobal will start.")
+    Logger.debug("AppGlobal will start.")
     super.beforeStart(app)
   }
 
   override def onStart(app: Application) = {
-    Logger.info("AppGlobal is starting.")
+    Logger.debug("AppGlobal is starting.")
     super.onStart(app)
 
     try {

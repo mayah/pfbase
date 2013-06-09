@@ -42,4 +42,8 @@ object UserEmailPassword extends ModelSupport {
         Some(UserEmailPassword(new UserId(row[UUID]("userId")), row[String]("email"), row[String]("hashedPassword")))
     }
   }
+
+  def deleteAll()(implicit con: Connection): Unit = {
+    SQL("DELETE FROM UserEmailPasswords").execute()
+  }
 }

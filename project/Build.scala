@@ -13,11 +13,8 @@ object ApplicationBuild extends Build {
     jdbc,
     anorm,
     "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
-    "junit" % "junit" % "4.11" % "test",
-    "org.hamcrest" % "hamcrest-all" % "1.3" % "test",
     "org.twitter4j" % "twitter4j-core" % "3.0.3",
-    "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
-    "org.scalatest" %% "scalatest" % "1.9.1" % "test"
+    "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(

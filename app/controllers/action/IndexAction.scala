@@ -13,6 +13,6 @@ object IndexAction extends AbstractAction[Unit, Unit] {
   }
 
   def renderResult(values: Unit)(implicit context: ActionContext): PlainResult = {
-    return render(views.html.index("Your new application is ready."))
+    return render(views.html.index())
   }
 }

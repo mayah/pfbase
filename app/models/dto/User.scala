@@ -15,15 +15,13 @@ case class UserEmbryo(
 
 case class User(
     val id: UserId,
-    val name: String) {
-
+    val name: String
+) {
   def toJSON(): JsValue = {
-    val map = Map(
+    return Json.obj(
       "id" -> id.toString(),
       "name" -> name
     )
-
-    return Json.toJson(map)
   }
 }
 
@@ -69,5 +67,9 @@ object User extends ModelSupport {
       case Some(row) =>
         Some(new User(new UserId(row[UUID]("Users.id")), row[String]("Users.name")))
     }
+  }
+
+  def deleteAll()(implicit con: Connection): Unit = {
+    SQL("DELETE FROM Users").execute()
   }
 }

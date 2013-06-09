@@ -1,4 +1,4 @@
-@(message: String)(implicit context: controllers.ActionContext)@main("BASE") {
+@()(implicit context: controllers.ActionContext)@main("BASE") {
 <div class="container">
 	<div class="row">
 		<div class="span16"><div class="hero-unit">
@@ -115,7 +115,7 @@
 					sessionToken: "@context.sessionToken"
 				}
 
-				$.post('/api/auth/register', arg).done(function() {
+				$.post('/api/users/register', arg).done(function() {
 					// login OK.
 				    location.href = '/';
 				}).fail(function(xhr) {

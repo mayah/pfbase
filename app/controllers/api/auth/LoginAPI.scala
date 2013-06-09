@@ -1,4 +1,4 @@
-package controllers.api.user
+package controllers.api.auth
 
 import java.sql.Connection
 import org.apache.commons.codec.digest.DigestUtils
@@ -13,22 +13,20 @@ import play.api.mvc.PlainResult
 import play.api.mvc.Request
 import resources.UserErrorCode
 import resources.Constants
-import play.api.mvc.Cookie
-import play.api.mvc.Session
 import resources.MessageCode
 
-case class UserLoginParams(val email: String, val password: String, val rememberMe: Boolean)
-case class UserLoginValues(val user: User)
+case class LoginParams(val email: String, val password: String, val rememberMe: Boolean)
+case class LoginValues(val user: User)
 
-object UserLoginAPI extends AbstractAPI[UserLoginParams, UserLoginValues] {
-  override def parseRequest(request: Request[AnyContent])(implicit context: ActionContext): UserLoginParams = {
+object LoginAPI extends AbstractAPI[LoginParams, LoginValues] {
+  override def parseRequest(request: Request[AnyContent])(implicit context: ActionContext): LoginParams = {
     val email: String = ensureFormParam("email").trim()
     val password: String = ensureFormParam("password").trim()
     val rememberMe: Boolean = parseCheckBoxParam(ensureFormParam("rememberme").trim())
-    return UserLoginParams(email, password, rememberMe)
+    return LoginParams(email, password, rememberMe)
   }
 
-  override def executeAction(params: UserLoginParams)(implicit context: ActionContext): UserLoginValues = {
+  override def executeAction(params: LoginParams)(implicit context: ActionContext): LoginValues = {
     val hashedPassword = DigestUtils.shaHex(params.password)
     val maybeUser = DB.withConnection { implicit con: Connection =>
       User.findBy(params.email, hashedPassword)
@@ -45,10 +43,10 @@ object UserLoginAPI extends AbstractAPI[UserLoginParams, UserLoginValues] {
     } else {
       context.addSessionValue(Constants.Session.USER_ID_KEY, user.id.toString())
     }
-    return UserLoginValues(user)
+    return LoginValues(user)
   }
 
-  override def renderResult(values: UserLoginValues)(implicit context: ActionContext): PlainResult = {
+  override def renderResult(values: LoginValues)(implicit context: ActionContext): PlainResult = {
     context.addFlashing(Constants.Flash.MESSAGE_ID, MessageCode.MESSAGE_AUTH_LOGIN.descriptionId)
     return renderJson(values.user.toJSON())
   }
