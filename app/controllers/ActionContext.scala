@@ -1,68 +1,72 @@
 package controllers
 
+import java.sql.Connection
+import java.util.UUID
+
 import models.dto.User
+import models.dto.UserId
+import mpff.controllers.MPFFActionContext
+import mpff.controllers.MPFFParserTrait
+import mpff.sessions.LongLiveSession
+import play.api.Play.current
+import play.api.db.DB
 import play.api.mvc.AnyContent
 import play.api.mvc.Request
-import resources.MessageCode
-import resources.UserErrorCode
-import resources.ServerErrorCode
-import play.api.mvc.Cookie
+import resources.Constants
 
 /** ActionContext contains several information per a user request.
  */
 class ActionContext(
-    val maybeLoginUser: Option[User],   // Some(User) if a user is logged in, None otherwise
-    val request: Request[AnyContent],   // Request object
-    val sessionToken: String,
-    val sessionId: String,
-    val currentURL: String) {
-  var maybeRedirectURL: Option[String] = None
-
-  var messageCodes: List[MessageCode.Code] = List.empty
-  def addMessageCode(messageCode: MessageCode.Code) {
-    messageCodes = messageCode :: messageCodes
-  }
-
-  var userErrorCodes: List[UserErrorCode.Code] = List.empty
-  def addUserErrorCode(userErrorCode: UserErrorCode.Code) {
-    userErrorCodes = userErrorCode :: userErrorCodes
-  }
-
-  var serverErrorCodes: List[ServerErrorCode.Code] = List.empty
-  def addServerErrorCode(serverErrorCode: ServerErrorCode.Code) {
-    serverErrorCodes = serverErrorCode :: serverErrorCodes
-  }
-
-  def hasSomeMessages(): Boolean = {
-    return messageCodes != List.empty || userErrorCodes != List.empty || serverErrorCodes != List.empty
-  }
-
-  // ----------------------------------------------------------------------
-
-  var sessionValues: List[(String, String)] = List.empty
-  def addSessionValue(key: String, value: String) {
-    sessionValues = (key, value) :: sessionValues
-  }
-  def discardSession() {
-    sessionValues = List.empty
-  }
-
-  var longliveSessionValues: List[(String, String)] = List.empty
-  def addLongLiveSessionValue(key: String, value: String) {
-    longliveSessionValues = (key, value) :: longliveSessionValues
-  }
-  def discardLongLiveSession() {
-    longliveSessionValues = List.empty
-  }
-
-  var flashingValues: List[(String, String)] = List.empty
-  def addFlashing(key: String, value: String) {
-    flashingValues = (key, value) :: flashingValues
-  }
-
-  var headers: List[(String, String)] = List.empty
-  def addHeader(key: String, value: String) {
-    headers = (key -> value) :: headers
-  }
+    val optLoginUser: Option[User],   // Some(User) if a user is logged in, None otherwise
+    override val request: Request[AnyContent],   // Request object
+    override val sessionToken: String,
+    override val sessionId: String) extends MPFFActionContext(request, sessionToken, sessionId) {
 }
 
+trait ActionContextPreparer extends MPFFParserTrait {
+  def prepareActionContext(request: Request[AnyContent]): ActionContext = {
+    val userFromSession: Option[User] = optUserFromSession(request)
+    val userFromLongLiveSession: Option[User] = optUserFromLongLiveSession(request)
+
+    val sessionToken: String = request.session.get(Constants.Session.TOKEN_KEY) match {
+      case None => UUID.randomUUID().toString()
+      case Some(x) => x
+    }
+
+    val sessionId: String = request.session.get(Constants.Session.ID_KEY) match {
+      case None => UUID.randomUUID().toString()
+      case Some(x) => x
+    }
+
+    val context = new ActionContext(userFromSession.orElse(userFromLongLiveSession), request, sessionToken, sessionId)
+
+    // --- prepare session values
+    context.addSessionValue(Constants.Session.TOKEN_KEY, sessionToken)
+    context.addSessionValue(Constants.Session.ID_KEY, sessionId)
+    if (userFromSession != None) {
+        context.addSessionValue(Constants.Session.USER_ID_KEY, userFromSession.get.id.toString)
+    } else if (userFromLongLiveSession != None) {
+        context.addLongLiveSessionValue(Constants.Session.USER_ID_KEY, userFromLongLiveSession.get.id.toString)
+    }
+
+    return context
+  }
+
+  private def optUserFromSession(request: Request[AnyContent]): Option[User] = {
+    request.session.get(Constants.Session.USER_ID_KEY).flatMap(parseUUID(_)).flatMap { case userId =>
+      DB.withConnection { implicit con: Connection =>
+        User.find(UserId(userId))
+      }
+    }
+  }
+
+  private def optUserFromLongLiveSession(request: Request[AnyContent]): Option[User] = {
+    // We have to decode long live session by ourselves.
+    val longliveSession = LongLiveSession.decodeFromCookie(request.cookies.get(LongLiveSession.COOKIE_NAME))
+    longliveSession.get(Constants.Session.USER_ID_KEY).flatMap(parseUUID(_)).flatMap { case userId =>
+      DB.withConnection { implicit con: Connection =>
+        User.find(UserId(userId))
+      }
+    }
+  }
+}

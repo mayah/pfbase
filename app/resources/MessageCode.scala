@@ -1,12 +1,9 @@
 package resources
 import play.api.i18n.Messages
+import mpff.resources.MPFFMessageCodes
+import mpff.resources.MessageCode
 
-object MessageCode extends Enumeration {
-  val MESSAGE_UNKNOWN = Code("message.unknown")
-  val MESSAGE_AUTH_LOGIN = Code("message.login")
-  val MESSAGE_AUTH_LOGOUT = Code("message.logout")
-
-  case class Code(val descriptionId: String) extends Val(descriptionId) {
-    def description = Messages(descriptionId)
-  }
+object MessageCodes extends MPFFMessageCodes {
+  val MESSAGE_AUTH_LOGIN = MessageCode("message.login")
+  val MESSAGE_AUTH_LOGOUT = MessageCode("message.logout")
 }

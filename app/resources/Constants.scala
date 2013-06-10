@@ -1,11 +1,10 @@
 package resources
 
-object Constants {
+import mpff.resources.MPFFConstants
+
+object Constants extends MPFFConstants {
   // Since session is just a cookie, we should reduce the whole quantity bytes of session value.
-  object Session {
-    def ID_KEY = "sessionId"
-    def USER_ID_KEY = "userId"
-    def TOKEN_KEY = "sessionToken"
+  object Session extends MPFFSession {
   }
 
   // Flash is also just a cookie, we should reduce the whole quantify bytes of flash value.

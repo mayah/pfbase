@@ -1,0 +1,21 @@
+<h1>新規登録</h1>
+
+<form ng-submit="submit()">
+    <div class="form-group">
+        <input type="text" ng-model="loginId" placeholder="ID" class="col-md-12 form-control">
+    </div>
+    <div class="form-group">
+        <input type="text" ng-model="nickname" placeholder="名前" class="col-md-12 form-control">
+    </div>
+    <div class="form-group">
+        <input type="email" ng-model="email" placeholder="メールアドレス" class="col-md-12 form-control">
+    </div>
+    <div class="form-group">
+        <input type="password" ng-model="password" placeholder="パスワード" class="col-md-12 form-control">
+    </div>
+    <div class="form-group">
+        <input type="password" ng-model="confirmation" placeholder="パスワード (確認)" class="col-md-12 form-control">
+    </div>
+    <input type="submit" value="BASE に登録する" class="btn btn-danger">
+</form>
+

@@ -1,34 +1,8 @@
 package controllers.action
 
-import controllers.AbstractController
-import play.api.Logger
-import play.api.mvc.PlainResult
-import play.api.templates.Html
-import resources.ServerErrorCode
-import resources.UserErrorCode
+import mpff.controllers.controllers.action.MPFFAbstractActionController
+import controllers.ActionContext
+import controllers.RequestParameterTrait
+import controllers.ActionContextPreparer
 
-abstract class AbstractAction[S, T] extends AbstractController[S, T] {
-  protected def render(content: Html): PlainResult = Ok(content)
-
-  override protected def renderInvalid(ec: UserErrorCode.Code, e: Option[Throwable] = None, optionalInfo: Option[Map[String, String]] = None): PlainResult = {
-    e match {
-      case None => BadRequest
-      case Some(x) =>
-        Logger.info("renderInvalid", x)
-        Redirect("/invalid?errorCode=" + ec.descriptionId)
-    }
-  }
-
-  override protected def renderError(ec: ServerErrorCode.Code, e: Option[Throwable] = None, optionalInfo: Option[Map[String, String]] = None): PlainResult = {
-    e match {
-      case None => InternalServerError
-      case Some(x) =>
-        Logger.info("renderError", x);
-        Redirect("/error?errorCode=" + ec.descriptionId)
-    }
-  }
-
-  override protected def renderLoginRequired(): PlainResult = Redirect("/loginRequired")
-  override protected def renderForbidden(): PlainResult = Forbidden
-  override protected def renderNotFound(): PlainResult = NotFound
-}
+class AbstractAction extends MPFFAbstractActionController[ActionContext] with RequestParameterTrait with ActionContextPreparer
