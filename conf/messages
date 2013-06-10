@@ -1,0 +1,9 @@
+message.unknown=不明なメッセージです
+message.login=ログインしました
+message.logout=ログアウトしました
+
+invalid.unknown=不明なユーザーエラーです
+
+error.unknown=不明なサーバーエラーです
+error.database=データベースエラーです
+
