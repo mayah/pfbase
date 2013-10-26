@@ -1,144 +1,27 @@
-@()(implicit context: controllers.ActionContext)@main("BASE") {
+@()(implicit context: controllers.ActionContext)<html ng-app="app">
+<head>
+    <meta charset="utf-8">
+    <meta name="fragment" content="!" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/all.css")">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <script src="@routes.Assets.at("javascripts/angular-ui-router.min.js")"></script>
+    <script src="@routes.Assets.at("javascripts/controllers.js")"></script>
+    <title>BASE</title>
+
+    <script>
+        window.sessionToken = '@context.sessionToken';
+    </script>
+</head>
+<body ng-controller="appController">
+@base.header()
 <div class="container">
-	<div class="row">
-		<div class="span16"><div class="hero-unit">
-			<h1>BASE へようこそ</h1>
-			<p>本文</p>
-		</div></div>
-		<div class="span8">
-			<h3>BASE を始めませんか？</h3>
-			<form id="register-form">
-				<div id="register-email-control" class="control-group no-margin">
-					<input id="register-email" type="email" name="email" value="" placeholder="メールアドレス" class="span8">
-					<span id="register-email-help" class="help-inline hidden"></span>
-				</div>
-				<div id="register-name-control" class="control-group no-margin">
-					<input id="register-name" type="text" name="name" value="" placeholder="名前" class="span8">
-					<span id="register-name-help" class="help-inline hidden"></span>
-				</div>
-				<div id="register-password-control" class="control-group no-margin">
-					<input id="register-password" type="password" name="password" value="" placeholder="パスワード" class="span8">
-					<input id="register-confirmation" type="password" name="password-confirmation" value="" placeholder="パスワード (確認)" class="span8">
-					<span id="register-password-help" class="help-inline hidden"></span>
-				</div>
-				<input id="register-submit" type="submit" value="BASE に登録する" class="btn btn-info pull-right">
-			</form>
-		</div>
-		<script>
-		function showErrorMessage(idPrefix, errorMessage) {
-			$('#' + idPrefix + '-help').text(errorMessage).removeClass('hidden');
-			$('#' + idPrefix + '-control').addClass('error').removeClass('no-margin');
-		}
-		function removeErrorMessage(idPrefix) {
-			$('#' + idPrefix + '-help').addClass('hidden');
-			$('#' + idPrefix + '-control').removeClass('error').addClass('no-margin');
-		}
-
-		function checkEmailValidity() {
-			var email = $('#register-email').val().trim();
-
-			if (!email || email == "") {
-				showErrorMessage('register-email', 'メールアドレスを入力して下さい。');
-				return false;
-			}
-
-			if (!$('#register-email')[0].checkValidity()) {
-				showErrorMessage('register-email', '有効なメールアドレスの形式ではありません。');
-				return false;
-			}
-
-			removeErrorMessage('register-email');
-			return true;
-		}
-
-		function checkNameValidity() {
-			var name = $('#register-name').val().trim();
-			if (!name || name == "") {
-				showErrorMessage('register-name', '名前を入力して下さい。');
-				return false;
-			}
-
-			removeErrorMessage('register-name');
-			return true;
-		}
-
-		function checkPasswordValidity() {
-			var password = $('#register-password').val().trim();
-			var confirmation = $('#register-confirmation').val().trim();
-
-			if (password.length < 6) {
-				showErrorMessage('register-password', 'パスワードは６文字以上で入力して下さい。');
-				return false;
-			}
-
-			if (password != confirmation) {
-				showErrorMessage('register-password', 'パスワードと確認用パスワードが一致しません。');
-				return false;
-			}
-
-			removeErrorMessage('register-password');
-			return true;
-		}
-
-		$(document).ready(function() {
-			$('#register-email').focus(function() {
-				removeErrorMessage('register-email');
-			}).blur(function() {
-				checkEmailValidity();
-			});
-			$('#register-name').focus(function() {
-				removeErrorMessage('register-name');
-			}).blur(function() {
-				checkNameValidity();
-			});
-			$('#register-password, #register-confirmation').focus(function() {
-				removeErrorMessage('register-password');
-			}).blur(function() {
-				checkPasswordValidity();
-			});
-
-			$('#register-form').submit(function() {
-				var ok = true;
-				ok &= checkEmailValidity();
-				ok &= checkNameValidity();
-				ok &= checkPasswordValidity();
-
-				if (!ok)
-					return false;
-
-				$('#register-submit').attr('disabled', 'disabled');
-
-				var arg = {
-					name: $('#register-name').val().trim(),
-					email: $('#register-email').val().trim(),
-					password: $('#register-password').val().trim(),
-					sessionToken: "@context.sessionToken"
-				}
-
-				$.post('/api/users/register', arg).done(function() {
-					// login OK.
-				    location.href = '/';
-				}).fail(function(xhr) {
-					// login failed.
-					var json = $.parseJSON(xhr.responseText);
-					if (json['optionalInfo']) {
-						if (json['optionalInfo']['email']) {
-							showErrorMessage('register-email', json['optionalInfo']['email']);
-						}
-						if (json['optionalInfo']['name']) {
-							showErrorMessage('register-name', json['optionalInfo']['name']);
-						}
-						if (json['optionalInfo']['password']) {
-							showErrorMessage('register-password', json['optionalInfo']['password']);
-						}
-					}
-					$('#register-submit').removeAttr('disabled');
-				})
-
-				return false;
-			});
-		});
-		</script>
-	</div>
+    <div ui-view></div>
 </div>
-}
+@base.footer()
+</body>
+</html>

@@ -2,20 +2,19 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
-GET     /                           controllers.action.IndexAction.run()
-
 # Auth
-GET     /auth/loginWithTwitter      controllers.action.auth.LoginWithTwitterAction.run()
-GET     /auth/verifyForTwitter      controllers.action.auth.VerifyForTwitterAction.run()
-GET     /auth/logout                controllers.action.auth.LogoutAction.run()
-
-# API
-POST	/api/auth/login				controllers.api.auth.LoginAPI.run()
+POST	/api/auth/login				controllers.api.auth.LoginAPI.action
+POST    /api/auth/logout            controllers.api.auth.LogoutAPI.action
 
 # USER API
-GET		/api/users   				controllers.api.user.UserShowAPI.run()
-POST	/api/users/register			controllers.api.user.UserRegisterAPI.run()
+GET		/api/users/:id 				controllers.api.user.ShowAPI.action(id)
+POST	/api/users/create			controllers.api.user.CreateAPI.action
+
+# ----------------------------------------------------------------------
+#
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+# Map HTML resource. Path starting with api/ is reserved for API.
+GET     /$path<(?!api\/).*>         controllers.action.HTMLAction.action(path)
