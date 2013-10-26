@@ -1,9 +1,7 @@
 package controllers.api.auth
 
 import java.sql.Connection
-
 import org.apache.commons.codec.digest.DigestUtils
-
 import controllers.api.AbstractAPI
 import models.dto.User
 import mpff.controllers.UserErrorControllerException
@@ -12,9 +10,8 @@ import play.api.db.DB
 import resources.Constants
 import resources.MessageCodes
 import resources.UserErrorCodes
-
-case class LoginParams(val email: String, val password: String, val rememberMe: Boolean)
-case class LoginValues(val user: User)
+import play.api.libs.json.Json
+import java.util.UUID
 
 object LoginAPI extends AbstractAPI {
   def action = MPFFAction { request => implicit context =>
@@ -23,7 +20,7 @@ object LoginAPI extends AbstractAPI {
 
     val email = jsonEnsureString(optJson, "email").trim()
     val password = jsonEnsureString(optJson, "password").trim()
-    val rememberMe = jsonOptBoolean(optJson, "rememberme").getOrElse(false)
+    val rememberMe = jsonOptBoolean(optJson, "rememberMe").getOrElse(false)
 
     val hashedPassword = DigestUtils.shaHex(password)
 
@@ -40,7 +37,19 @@ object LoginAPI extends AbstractAPI {
       context.addSessionValue(Constants.Session.USER_ID_KEY, user.id.toString())
     }
 
+    // Re-new sessionToken for preventing session fixation attach.
+    val newSessionToken = UUID.randomUUID().toString()
+    context.setSessionValue(Constants.Session.TOKEN_KEY, newSessionToken)
+
     context.addFlashing(Constants.Flash.MESSAGE_ID, MessageCodes.MESSAGE_AUTH_LOGIN.descriptionId)
-    renderJson(user.toJSON())
+
+    // Sets new context
+
+    val obj = Json.obj(
+      "user" -> user.toJSON(),
+      "sessionToken" -> newSessionToken
+    )
+
+    renderJson(obj)
   }
 }

@@ -1,9 +1,9 @@
 package controllers.api
 
-import mpff.controllers.MPFFAbstractAPIController
 import controllers.ActionContext
-import controllers.RequestParameterTrait
 import controllers.ActionContextPreparer
+import controllers.RequestParameterTrait
+import mpff.controllers.MPFFAbstractAPIController
 
 class AbstractAPI extends MPFFAbstractAPIController[ActionContext] with RequestParameterTrait with ActionContextPreparer
 

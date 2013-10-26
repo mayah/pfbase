@@ -10,6 +10,9 @@ POST    /api/auth/logout            controllers.api.auth.LogoutAPI.action
 GET		/api/users/:id 				controllers.api.user.ShowAPI.action(id)
 POST	/api/users/create			controllers.api.user.CreateAPI.action
 
+# DEMO API
+GET		/api/demo/checkLogin		controllers.api.demo.CheckLoginAPI.action
+
 # ----------------------------------------------------------------------
 #
 

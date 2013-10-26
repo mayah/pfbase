@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/all.css")">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
     <script src="@routes.Assets.at("javascripts/angular-ui-router.min.js")"></script>
     <script src="@routes.Assets.at("javascripts/controllers.js")"></script>
@@ -15,6 +15,10 @@
 
     <script>
         window.sessionToken = '@context.sessionToken';
+        @defining(context.optLoginUser) { optionalLoginUser => @optionalLoginUser match {
+        case None => {}
+        case Some(loginUser) => {window.loginUser = @Html(loginUser.toJSON().toString());}
+        }}
     </script>
 </head>
 <body ng-controller="appController">

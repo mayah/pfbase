@@ -7,6 +7,9 @@ import resources.MessageCodes
 object LogoutAPI extends AbstractAPI {
   def action = MPFFAction { request => implicit context =>
     val json = context.request.body.asJson
+
+    println(json)
+
     ensureValidSessionToken(json)
 
     context.discardSession();
